@@ -1,0 +1,60 @@
+Table users {
+  id bigint [pk, increment]
+  email text [not null, unique]
+  password_hash text [not null]
+  role text [not null, note: 'student | staff']
+  created_at timestamptz [not null, default: `now()`]
+}
+
+Table proposals {
+  id bigint [pk, increment]
+  user_id bigint [not null, ref: > users.id]
+  title text [not null]
+  description text [not null]
+  status text [not null, default: 'pending', note: 'pending | approved | denied']
+  moderated_by bigint [null, ref: > users.id]
+  moderated_at timestamptz [null]
+  created_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    (status, created_at)
+    created_at
+  }
+}
+
+Table votes {
+  id bigint [pk, increment]
+  user_id bigint [not null, ref: > users.id]
+  proposal_id bigint [not null, ref: > proposals.id]
+  value smallint [not null, note: '+1 up, -1 down']
+  created_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    (user_id, proposal_id) [unique]
+    (proposal_id, value)
+  }
+}
+
+Table comments {
+  id bigint [pk, increment]
+  proposal_id bigint [not null, ref: > proposals.id]
+  user_id bigint [not null, ref: > users.id]
+  body text [not null]
+  created_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    proposal_id
+  }
+}
+
+Table replies {
+  id bigint [pk, increment]
+  comment_id bigint [not null, ref: > comments.id]
+  user_id bigint [not null, ref: > users.id]
+  body text [not null]
+  created_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    comment_id
+  }
+}

@@ -1,0 +1,31 @@
+# Constraint → requirement
+
+- `users_email_key` UNIQUE(email) → SC1
+- `users_role_check` role IN ('student','staff') → SC1
+- @bfischool.org domain check → SC1 (server, decision 4; not in DB)
+- `proposals_user_id_fkey` → SC2
+- `proposals_enforce_roles_trg` (author must be student) → SC2
+- `proposals_title_length_check` 4–100 chars (trimmed min) → SC2
+- `proposals_description_length_check` 4–2000 chars (trimmed min) → SC2
+- `proposals.status` DEFAULT 'pending' → SC2
+- `proposals_status_check` status IN ('pending','approved','denied') → SC2, SC4
+- `proposals_moderation_check` (pending ⇔ moderated_by/moderated_at NULL) → SC4
+- `proposals_moderated_by_fkey` → SC4
+- `proposals_enforce_roles_trg` (moderator must be staff) → SC4
+- `votes_user_id_proposal_id_key` UNIQUE(user_id, proposal_id) → SC3
+- `votes_value_check` value IN (1,-1) → SC3, SC5
+- `votes_enforce_student_trg` (voter must be student) → SC3
+- `votes_enforce_not_own_trg` (voter must not be the proposal's OP) → SC3
+- `votes_user_id_fkey`, `votes_proposal_id_fkey` → SC3
+- `comments_enforce_staff_trg` (author must be staff) → SC4
+- `comments_proposal_id_fkey`, `comments_user_id_fkey` → SC4
+- `comments_body_length_check` 10–2000 chars (trimmed min) → SC4
+- `replies_enforce_op_trg` (replier must be proposal's OP) → SC4
+- `replies_comment_id_fkey`, `replies_user_id_fkey` → SC4
+- `replies_body_length_check` 10–2000 chars (trimmed min) → SC4
+- `proposals_status_created_at_idx` (status, created_at) → SC5
+- `proposals_created_at_idx` (created_at) → SC5
+- `votes_proposal_id_value_idx` (proposal_id, value) → SC5
+- `comments_proposal_id_idx` (proposal_id) → SC4, SC6
+- `replies_comment_id_idx` (comment_id) → SC4, SC6
+- No vote-revealing column/view; only SUM(value) is queried → SC6 (app)

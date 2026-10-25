@@ -1,0 +1,53 @@
+%%{init: {"flowchart": {"wrappingWidth": 560}}}%%
+flowchart LR
+    subgraph UI["React components"]
+        direction TB
+        subgraph HeaderG["Header"]
+            AuthPanel
+        end
+        subgraph FeedG["FeedPage"]
+            direction TB
+            ProposalForm
+            subgraph CardG["ProposalCard"]
+                direction TB
+                VoteControls
+                ModerationControls
+                subgraph ThreadG["CommentThread"]
+                    direction TB
+                    CommentForm
+                    ReplyForm
+                end
+            end
+        end
+    end
+
+    subgraph API["API route groups"]
+        direction TB
+        Auth["<b>Auth</b><br/>POST /api/signup · anyone<br/>POST /api/login · anyone<br/>POST /api/logout · logged-in<br/>GET /api/me · logged-in"]
+        Proposals["<b>Proposals</b><br/>GET /api/proposals · logged-in<br/>POST /api/proposals · student<br/>PATCH /api/proposals/:id/status · staff"]
+        Votes["<b>Votes</b><br/>PUT /api/proposals/:id/vote · student (not the original poster)<br/>DELETE /api/proposals/:id/vote · student (not the original poster)"]
+        Comments["<b>Comments & replies</b><br/>GET /api/proposals/:id/comments · logged-in<br/>POST /api/proposals/:id/comments · staff<br/>POST /api/comments/:id/replies · original poster"]
+    end
+
+    subgraph DB["Database tables"]
+        direction TB
+        users[(users)]
+        proposals[(proposals)]
+        votes[(votes)]
+        comments[(comments)]
+        replies[(replies)]
+    end
+
+    %% Component groups -> route groups
+    HeaderG --> Auth
+    FeedG --> Proposals
+    VoteControls --> Votes
+    ThreadG --> Comments
+
+    %% Route groups -> tables (W = writes, R = mainly reads)
+    Auth -->|W| users
+    Proposals -->|W| proposals
+    Proposals -->|R| votes
+    Votes -->|W| votes
+    Comments -->|W| comments
+    Comments -->|W| replies

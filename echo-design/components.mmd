@@ -1,0 +1,73 @@
+flowchart LR
+    subgraph Pages["React pages / components"]
+        direction TB
+        App
+        Header
+        AuthPanel
+        FeedPage
+        ProposalForm
+        VoteControls
+        ModerationControls
+        CommentThread
+        CommentForm
+        ReplyForm
+    end
+
+    subgraph Routes["API routes"]
+        direction TB
+        R1["POST /api/signup"]
+        R2["POST /api/login"]
+        R3["POST /api/logout"]
+        R4["GET /api/me"]
+        R5["GET /api/proposals"]
+        R6["POST /api/proposals"]
+        R7["PUT /api/proposals/:id/vote"]
+        R8["DELETE /api/proposals/:id/vote"]
+        R9["PATCH /api/proposals/:id/status"]
+        R10["GET /api/proposals/:id/comments"]
+        R11["POST /api/proposals/:id/comments"]
+        R12["POST /api/comments/:id/replies"]
+    end
+
+    subgraph Tables["Database tables"]
+        direction TB
+        users[(users)]
+        proposals[(proposals)]
+        votes[(votes)]
+        comments[(comments)]
+        replies[(replies)]
+    end
+
+    %% Pages -> routes
+    App -->|"GET /api/me"| R4
+    Header -->|"POST /api/logout"| R3
+    AuthPanel -->|"POST /api/signup"| R1
+    AuthPanel -->|"POST /api/login"| R2
+    FeedPage -->|"GET /api/proposals"| R5
+    ProposalForm -->|"POST /api/proposals"| R6
+    VoteControls -->|"PUT /api/proposals/:id/vote"| R7
+    VoteControls -->|"DELETE /api/proposals/:id/vote"| R8
+    ModerationControls -->|"PATCH /api/proposals/:id/status"| R9
+    CommentThread -->|"GET /api/proposals/:id/comments"| R10
+    CommentForm -->|"POST /api/proposals/:id/comments"| R11
+    ReplyForm -->|"POST /api/comments/:id/replies"| R12
+
+    %% Routes -> tables (R = read, W = write)
+    R1 -->|"R/W"| users
+    R2 -->|"R"| users
+    R5 -->|"R"| proposals
+    R5 -->|"R"| votes
+    R6 -->|"W"| proposals
+    R7 -->|"R"| proposals
+    R7 -->|"R/W"| votes
+    R8 -->|"R"| proposals
+    R8 -->|"R/W"| votes
+    R9 -->|"R/W"| proposals
+    R10 -->|"R"| proposals
+    R10 -->|"R"| comments
+    R10 -->|"R"| replies
+    R11 -->|"R"| proposals
+    R11 -->|"W"| comments
+    R12 -->|"R"| comments
+    R12 -->|"R"| proposals
+    R12 -->|"W"| replies

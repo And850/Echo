@@ -1,0 +1,48 @@
+erDiagram
+    users {
+        bigint id PK
+        text email UK
+        text password_hash
+        text role "student | staff"
+        timestamptz created_at
+    }
+    proposals {
+        bigint id PK
+        bigint user_id FK
+        text title
+        text description
+        text status "pending | approved | denied"
+        bigint moderated_by FK "nullable"
+        timestamptz moderated_at "nullable"
+        timestamptz created_at
+    }
+    votes {
+        bigint id PK
+        bigint user_id FK,UK "UNIQUE(user_id, proposal_id)"
+        bigint proposal_id FK,UK "UNIQUE(user_id, proposal_id)"
+        smallint value "+1 up, -1 down"
+        timestamptz created_at
+    }
+    comments {
+        bigint id PK
+        bigint proposal_id FK
+        bigint user_id FK
+        text body
+        timestamptz created_at
+    }
+    replies {
+        bigint id PK
+        bigint comment_id FK
+        bigint user_id FK
+        text body
+        timestamptz created_at
+    }
+
+    users     ||--o{ proposals : "submits (user_id)"
+    users     |o--o{ proposals : "moderates (moderated_by)"
+    users     ||--o{ votes     : "casts"
+    proposals ||--o{ votes     : "receives"
+    users     ||--o{ comments  : "writes"
+    proposals ||--o{ comments  : "has"
+    comments  ||--o{ replies   : "has"
+    users     ||--o{ replies   : "writes"
