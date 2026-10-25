@@ -2,6 +2,7 @@ const express = require("express");
 const bcrypt = require("bcrypt");
 const pool = require("../db");
 const router = express.Router();
+const requireLogin = require("../middleware/auth");
 
 router.post("/signup", async (req, res) => {
     let email = req.body.email;
@@ -64,12 +65,8 @@ router.post("/signup", async (req, res) => {
     res.status(201).json( queryResult.rows[0] );
 });
 
-router.get("/me", async (req, res) => {
-    if (!req.session.user) {
-        return res.status(401).json({ error: "Login required" });
-    } else {
-        return res.status(200).json({ user: req.session.user });
-    }
+router.get("/me", requireLogin, async (req, res) => {
+    return res.status(200).json({ user: req.session.user });
 });
 
 router.post("/login", async (req, res) => {
@@ -101,11 +98,7 @@ router.post("/login", async (req, res) => {
     }
 });
 
-router.post("/logout", (req, res) => {
-    if(!req.session.user) {
-        return res.status(401).json({ error: "Login required"});
-    }
-
+router.post("/logout", requireLogin, (req, res) => {
     req.session.destroy((error) => {
         if (error) {
             return res.status(500).json({ error: "Logout failed" });
