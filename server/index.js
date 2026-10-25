@@ -1,14 +1,9 @@
 require("dotenv").config();
 
-const express = require("express");
+const app = require("./app");
 const pool = require("./db");
 
-const app = express();
 const port = process.env.PORT || 3001;
-
-app.get("/", (req, res) => {
-  res.send("Echo backend is running");
-});
 
 async function start() {
   try {
