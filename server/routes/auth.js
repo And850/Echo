@@ -2,7 +2,7 @@ const express = require("express");
 const bcrypt = require("bcrypt");
 const pool = require("../db");
 const router = express.Router();
-const requireLogin = require("../middleware/auth");
+const { requireLogin } = require("../middleware/auth");
 
 router.post("/signup", async (req, res) => {
     let email = req.body.email;
@@ -46,6 +46,7 @@ router.post("/signup", async (req, res) => {
 
     const registerQuery = "INSERT INTO users (email, password_hash, role) VALUES ($1, $2, $3) RETURNING id, email, role";
 
+    let queryResult;
     try {
         queryResult = await pool.query(registerQuery, [email, passwordHash, role]);
     } catch (error) {
@@ -66,12 +67,12 @@ router.post("/signup", async (req, res) => {
 });
 
 router.get("/me", requireLogin, async (req, res) => {
-    return res.status(200).json({ user: req.session.user });
+    return res.status(200).json(req.session.user);
 });
 
 router.post("/login", async (req, res) => {
 
-    const email = req.body.email.trim().toLowerCase();
+    let email = req.body.email;
     const password = req.body.password;
 
     if(typeof email !== "string" || typeof password !== "string") {
@@ -79,7 +80,7 @@ router.post("/login", async (req, res) => {
             error: "Email and password must be strings"
         });
     }
-
+    email = email.trim().toLowerCase();
     const userQuery = "SELECT id, email, password_hash, role FROM users WHERE email = $1";
     const queryResult = await pool.query(userQuery, [email]);
 
@@ -94,7 +95,7 @@ router.post("/login", async (req, res) => {
         return res.status(401).json({ error: "Incorrect email or password" });
     } else {
         req.session.user = { id: user.id, email: user.email, role: user.role };
-        return res.status(200).json({ user: req.session.user });
+        return res.status(200).json(req.session.user);
     }
 });
 
