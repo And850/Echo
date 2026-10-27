@@ -17,10 +17,12 @@ app.use(express_session({
 
 const authRoutes = require("./routes/auth");
 const proosalsRoutes = require("./routes/proposals");
+const votesRoutes = require("./routes/votes");
 
 app.use(express.json());
 app.use("/api", authRoutes);
 app.use("/api", proosalsRoutes);
+app.use("/api", votesRoutes);
 
 app.get("/", (req, res) => {
   res.send("Echo backend is running");
