@@ -31,8 +31,35 @@ router.post("/proposals", requireLogin, requireStudent, async (req, res) => {
 });
 
 router.get("/proposals", requireLogin, async (req, res) => {
-    const getProposalsQuery = "SELECT p.id, title, description, status, p.created_at, p.user_id = $1 AS is_own, COALESCE(SUM(v.value), 0) AS net_score, COALESCE(SUM(v.value) FILTER (WHERE v.user_id = $1), 0) AS my_vote FROM proposals p LEFT JOIN votes v ON p.id = v.proposal_id GROUP BY p.id ORDER BY p.created_at DESC, p.id DESC";
-    const queryResult = await pool.query(getProposalsQuery, [req.session.user.id]);
+    
+
+    //read the filter
+    const filter = req.query.status ?? "all"; //default to all
+    //check that its all, pending, approved or denied
+    if (!["all", "pending", "approved", "denied"].includes(filter)) {
+        return res.status(400).json({ error: "Invalid filter. Must be 'all', 'pending', 'approved' or 'denied'" });
+    }
+
+    //and sorting parameters
+    const sortBy = req.query.sort ?? "date"; //default to date
+    const sortOrder = req.query.order ?? "desc"; //default to desc
+    //accept only date or score, asc or desc
+    if (!["date", "score"].includes(sortBy)) {
+        return res.status(400).json({ error: "Invalid sort parameter. Must be 'date' or 'score'" });
+    }
+    if (!["asc", "desc"].includes(sortOrder)) {
+        return res.status(400).json({ error: "Invalid order parameter. Must be 'asc' or 'desc'" });
+    }
+
+    const direction = sortOrder === "asc" ? "ASC" : "DESC";
+    //love myself some short if notations ;)
+    const orderBy = sortBy === "score"
+    ? `net_score ${direction}, p.created_at ${direction}, p.id ${direction}`
+    : `p.created_at ${direction}, p.id ${direction}`;   
+
+//get filtered proposals with net score and my vote
+    const getProposalsQuery = `SELECT p.id, title, description, status, p.created_at, p.user_id = $1 AS is_own, COALESCE(SUM(v.value), 0) AS net_score, COALESCE(SUM(v.value) FILTER (WHERE v.user_id = $1), 0) AS my_vote FROM proposals p LEFT JOIN votes v ON p.id = v.proposal_id WHERE ($2 = 'all' OR p.status = $2) GROUP BY p.id ORDER BY ${orderBy}`;
+    const queryResult = await pool.query(getProposalsQuery, [req.session.user.id, filter]);
 
     return res.status(200).json(queryResult.rows);
 });
