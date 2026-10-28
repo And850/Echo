@@ -119,3 +119,9 @@ One page: the feed. No router, no separate proposal page, no "resolved" tab.
 | `ModerationControls` (pending only) | no | no | no | yes |
 | `CommentForm` | no | no | no | yes |
 | `ReplyForm` | no | no | yes | no |
+
+## Current interface differences
+
+- The logged-out login/signup form is below the header rather than inside it; the feed toolbar, student proposal form, and cards follow the logged-in header.
+- Proposal descriptions remain visible in collapsed cards, and an explicit View/Hide discussion button toggles the discussion instead of making the whole card clickable.
+- Cards currently show the proposal creation date, but do not show moderated dates; comments and replies do not yet show author labels or dates.
